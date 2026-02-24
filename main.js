@@ -58,7 +58,7 @@ let frames = 0;
 let score = 0;
 
 const bird = {x:80,y:H/2,vy:0,w:48,h:36};
-let gravity = 0.30, flapStrength = 5, maxFall = 12;
+let gravity = 0.30, flapStrength = 6, maxFall = 12;
 
 const pipes = [];
 const coins = []; // now holds grade items (A-F)
