@@ -15,13 +15,20 @@ const baseW = canvas.width, baseH = canvas.height;
 let W = baseW, H = baseH;
 
 const bullImg = new Image();
-const coinImg = new Image();
+// grade images (A-F)
+const GRADE_IMAGES = {};
+['A','B','C','D','E','F'].forEach(g => { GRADE_IMAGES[g] = new Image(); GRADE_IMAGES[g].src = `assets/grade_${g}.svg`; });
 
 // skins catalog
 const SKINS = [
   {id:'default', name:'Default', src:'assets/bull.svg', cost:0},
   {id:'red', name:'Raging Red', src:'assets/bull_red.svg', cost:10},
   {id:'gold', name:'Golden', src:'assets/bull_gold.svg', cost:25},
+  {id:'black', name:'Midnight', src:'assets/bull_black.svg', cost:15},
+  {id:'gray', name:'Steel Gray', src:'assets/bull_gray.svg', cost:12},
+  {id:'party', name:'Party', src:'assets/bull_party.svg', cost:30},
+  {id:'cowboy', name:'Cowboy', src:'assets/bull_cowboy.svg', cost:20},
+  {id:'legend', name:'Legend (HS50)', src:'assets/bull_legend.svg', unlockScore:50, cost:0},
 ];
 
 // persistent state
@@ -35,13 +42,18 @@ let frames = 0;
 let score = 0;
 
 const bird = {x:80,y:H/2,vy:0,w:48,h:36};
-let gravity = 0.45, flapStrength = 8, maxFall = 12;
+// Tuned for a floaty start: slower fall and gentler jumps
+// Physics tuned to match classic Flappy Bird feel (faster)
+let gravity = 0.65, flapStrength = 9.2, maxFall = 18;
 
 const pipes = [];
-const coins = [];
+const coins = []; // now holds grade items (A-F)
 const pipeWidth = 60;
-const gapMin = 130, gapMax = 180;
-const spawnInterval = 100; // frames (roughly every 1.6s at 60fps)
+const gapMin = 120, gapMax = 180;
+const spawnInterval = 100; // base frames between spawns (shorter -> more frequent)
+// Tuned: faster horizontal movement for classic game feel
+const baseSpeed = 6.5; // base horizontal movement speed
+const maxSpeedMultiplier = 3.2; // cap speed multiplier
 
 function saveState(){
   localStorage.setItem('bull_highscore', String(highScore));
@@ -56,6 +68,17 @@ function updateUI(){
   coinCountEl.textContent = `Coins: ${coinsCollected}`;
 }
 
+function applyScoreUnlocks(){
+  let changed = false;
+  SKINS.forEach(s => {
+    if(s.unlockScore && highScore >= s.unlockScore && !ownedSkins.includes(s.id)){
+      ownedSkins.push(s.id);
+      changed = true;
+    }
+  });
+  if(changed) saveState();
+}
+
 function reset(){
   bird.y = H/2; bird.vy = 0; frames = 0; score = 0;
   pipes.length = 0; coins.length = 0; gameRunning = false;
@@ -64,13 +87,74 @@ function reset(){
   updateUI();
 }
 
+function randomGradeType(currentScore){
+  // base weights (increased A weight to spawn more A grades)
+  const base = { A:20, B:12, C:25, D:15, E:10, F:8 };
+  // scale weights: as score increases, good grades become more likely, bad grades less likely
+  const goodMultiplier = Math.min(2.0, 1 + (currentScore || 0) * 0.02);
+  const badMultiplier = Math.max(0.3, 1 - (currentScore || 0) * 0.02);
+  const entries = Object.entries(base).map(([g,w]) => {
+    const mult = (g === 'A' || g === 'B' || g === 'C') ? goodMultiplier : badMultiplier;
+    return [g, w * mult];
+  });
+  const total = entries.reduce((s,[,w]) => s + w, 0);
+  let r = Math.random() * total;
+  for(const [g,w] of entries){ if(r < w) return g; r -= w; }
+  return 'C';
+}
+
+const GRADE_VALUES = { A:5, B:3, C:1, D:-2, E:-3, F:-5 };
+
 function spawnPipe(){
+  // Flappy-like pipe spawn with guaranteed passage: random gap size and a gapY
   const gap = Math.floor(Math.random()*(gapMax-gapMin))+gapMin;
-  const gapY = Math.floor(Math.random()*(H - gap - 120))+40;
   const x = W + 10;
+
+  // If a previous gap exists, constrain the new gapY so the vertical overlap
+  // between intervals is at least `minOverlap` pixels. This prevents impossible walls.
+  const minOverlap = 28; // pixels of required vertical overlap between consecutive gaps
+  let gapY;
+  if(typeof spawnPipe._prevGapY !== 'undefined'){
+    const prevY = spawnPipe._prevGapY;
+    const prevGap = spawnPipe._prevGap;
+    // allowed gapY range derived so that overlap >= minOverlap:
+    // gapY must be in [prevY + minOverlap - gap, prevY + prevGap - minOverlap]
+    const low = prevY + minOverlap - gap;
+    const high = prevY + prevGap - minOverlap;
+    const minY = Math.max(40, Math.ceil(low));
+    const maxY = Math.min(H - gap - 80, Math.floor(high));
+    if(minY <= maxY){
+      gapY = Math.floor(minY + Math.random() * (maxY - minY + 1));
+    } else {
+      // If no valid range, place gap near previous center to maximize overlap
+      const center = Math.floor(prevY + (prevGap - gap)/2);
+      gapY = Math.max(40, Math.min(H - gap - 80, center + Math.floor((Math.random()*21)-10)));
+    }
+  } else {
+    gapY = Math.floor(Math.random()*(H - gap - 120))+40;
+  }
+
   pipes.push({x, gapY, gap, w:pipeWidth, passed:false});
-  // coin in center of gap
-  coins.push({x: x + pipeWidth/2, y: gapY + gap/2, r:18, collected:false});
+
+  // spawn a grade item: good grades inside the gap, bad grades to left/right outside pipe
+  const type = randomGradeType(score);
+  const value = GRADE_VALUES[type];
+  const gy = gapY + 20 + Math.random()*(Math.max(0, gap - 40));
+  let gx;
+  if(value < 0){
+    // place to left or right outside pipe to encourage avoiding horizontally
+    const side = Math.random() < 0.5 ? -1 : 1;
+    const offsetX = 80 + Math.random()*40;
+    gx = side === -1 ? x - offsetX : x + pipeWidth + offsetX;
+  } else {
+    // good grades spawn inside the gap area
+    gx = x + pipeWidth/2 + (Math.random()*40 - 20);
+  }
+  coins.push({x: gx, y: gy, r:20, collected:false, type, value, img: GRADE_IMAGES[type]});
+
+  // remember last spawned gap for next spawn
+  spawnPipe._prevGapY = gapY;
+  spawnPipe._prevGap = gap;
 }
 
 function flap(){ bird.vy = -flapStrength; }
@@ -83,15 +167,22 @@ function update(){
   if(bird.vy > maxFall) bird.vy = maxFall;
   bird.y += bird.vy;
 
-  if(frames % spawnInterval === 0) spawnPipe();
+  // increase speed as score increases (makes game harder over time)
+  // speed scales with progress (very gentle growth)
+  const speedMultiplier = Math.min(1 + score * 0.008, maxSpeedMultiplier);
+  const speed = baseSpeed * speedMultiplier;
+
+  // reduce spawn interval slightly as score grows (keep floor reasonably high)
+  const dynamicSpawn = Math.max(160, spawnInterval - Math.floor(score * 3));
+  if(frames % dynamicSpawn === 0) spawnPipe();
 
   // move pipes and coins
   for(let i=pipes.length-1;i>=0;i--){
-    pipes[i].x -= 2.6;
+    pipes[i].x -= speed;
     if(pipes[i].x + pipes[i].w < -50) pipes.splice(i,1);
   }
   for(let i=coins.length-1;i>=0;i--){
-    coins[i].x -= 2.6;
+    coins[i].x -= speed;
     if(coins[i].x + coins[i].r < -50) coins.splice(i,1);
   }
 
@@ -114,7 +205,12 @@ function update(){
   for(const c of coins){
     if(c.collected) continue;
     const dx = bird.x - c.x; const dy = bird.y - c.y; const dist = Math.hypot(dx,dy);
-    if(dist < c.r + 10){ c.collected = true; coinsCollected += 1; saveState(); updateUI(); }
+    if(dist < c.r + 10){
+      c.collected = true;
+      if(c.value > 0){ coinsCollected += c.value; }
+      else { coinsCollected = Math.max(0, coinsCollected + c.value); }
+      saveState(); updateUI();
+    }
   }
 }
 
@@ -139,8 +235,11 @@ function draw(){
     ctx.fillRect(p.x-4,p.gapY + p.gap,p.w+8,8);
   }
 
-  // coins (A+ paper)
-  for(const c of coins){ if(c.collected) continue; ctx.drawImage(coinImg, c.x - c.r, c.y - c.r, c.r*2, c.r*2); }
+  // grades (A-F)
+  for(const c of coins){ if(c.collected) continue; if(c.img && c.img.complete) ctx.drawImage(c.img, c.x - c.r, c.y - c.r, c.r*2, c.r*2); else {
+    // fallback circle with letter
+    ctx.fillStyle = c.value>0 ? '#ffd166' : '#d9534f'; ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='20px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(c.type, c.x, c.y);
+  } }
 
   // bull (player)
   ctx.save();
@@ -154,7 +253,7 @@ function draw(){
 function loop(){ update(); draw(); requestAnimationFrame(loop); }
 
 // controls
-window.addEventListener('keydown', e=>{ if(e.code==='Space'){ e.preventDefault(); if(!gameRunning){ startGame(); } flap(); } });
+window.addEventListener('keydown', e=>{ if(e.code==='Space'){ e.preventDefault(); if(!gameRunning){ startGame(); } else { flap(); } } });
 canvas.addEventListener('click', ()=>{ if(!gameRunning){ startGame(); } else { flap(); } });
 
 function startGame(){
@@ -184,21 +283,33 @@ function closeShopFn(){ shop.classList.add('hidden'); }
 
 function renderSkins(){
   skinsList.innerHTML = '';
+  // apply any score-based unlocks before rendering
+  applyScoreUnlocks();
   SKINS.forEach(s => {
     const card = document.createElement('div'); card.className='skin-card';
     const img = document.createElement('img'); img.src = s.src; img.alt = s.name;
     const title = document.createElement('div'); title.textContent = s.name;
-    const cost = document.createElement('div'); cost.className='skin-cost'; cost.textContent = s.cost > 0 ? `${s.cost} coins` : 'Free';
+    const cost = document.createElement('div'); cost.className='skin-cost'; cost.textContent = s.cost > 0 ? `${s.cost} coins` : (s.unlockScore ? `Unlock at HS ${s.unlockScore}` : 'Free');
     const btn = document.createElement('button');
-    if(ownedSkins.includes(s.id)){
+    const isOwned = ownedSkins.includes(s.id);
+    const isLockedByScore = s.unlockScore && highScore < s.unlockScore;
+
+    if(isOwned){
       btn.textContent = (selectedSkin===s.id)? 'Equipped' : 'Equip';
       btn.disabled = (selectedSkin===s.id);
       btn.onclick = ()=>{ selectedSkin = s.id; bullImg.src = s.src; saveState(); renderSkins(); };
-    } else {
+    } else if(isLockedByScore){
+      btn.textContent = `Locked`;
+      btn.disabled = true;
+    } else if(s.cost && s.cost > 0){
       btn.textContent = `Buy`;
       btn.onclick = ()=>{
         if(coinsCollected >= s.cost){ coinsCollected -= s.cost; ownedSkins.push(s.id); saveState(); updateUI(); renderSkins(); } else { alert('Not enough coins'); }
       };
+    } else {
+      // free and not owned (e.g., unlocked by score)
+      btn.textContent = `Unlock`;
+      btn.onclick = ()=>{ ownedSkins.push(s.id); saveState(); renderSkins(); };
     }
     card.appendChild(img); card.appendChild(title); card.appendChild(cost); card.appendChild(btn);
     skinsList.appendChild(card);
@@ -208,21 +319,12 @@ function renderSkins(){
 shopBtn.addEventListener('click', openShop);
 closeShop.addEventListener('click', closeShopFn);
 
-// Start the render loop once both images are ready. Handle cached images too.
+// Start the render loop once the bull image is ready. Grade images load independently.
 function startLoopWhenReady(){
-  // set bull src based on selected skin
   const skin = SKINS.find(s=>s.id===selectedSkin) || SKINS[0];
   bullImg.src = skin.src;
-  coinImg.src = 'assets/usf.svg';
-
-  if(bullImg.complete && coinImg.complete){
-    requestAnimationFrame(loop);
-    return;
-  }
-  let loaded = 0;
-  const cb = ()=>{ loaded++; if(loaded === 2) requestAnimationFrame(loop); };
-  bullImg.onload = cb;
-  coinImg.onload = cb;
+  if(bullImg.complete){ requestAnimationFrame(loop); }
+  else { bullImg.onload = ()=> requestAnimationFrame(loop); }
 }
 
 // initial layout + start

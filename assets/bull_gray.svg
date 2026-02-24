@@ -1,0 +1,10 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 90'>
+  <g transform='translate(60,45)'>
+    <ellipse rx='28' ry='22' fill='#8a8a8a' stroke='#5e5e5e' stroke-width='2'/>
+    <ellipse cx='-8' cy='-4' rx='5' ry='6' fill='#fff'/>
+    <ellipse cx='12' cy='-4' rx='5' ry='6' fill='#fff'/>
+    <circle cx='-8' cy='-2' r='2' fill='#000'/>
+    <circle cx='12' cy='-2' r='2' fill='#000'/>
+    <path d='M-20,8 Q0,18 20,8' fill='#5e5e5e' />
+  </g>
+</svg>
