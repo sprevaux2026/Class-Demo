@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Bull Flappy — USF Coins</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="ui">
+    <h1>Bull Flappy</h1>
+    <div id="score">Score: 0</div>
+    <div id="overlay">Click or press Space to start</div>
+  </div>
+  <div id="topbar">
+    <div id="highscore">High: 0</div>
+    <div id="coinCount">Coins: 0</div>
+    <button id="shopBtn">Shop</button>
+  </div>
+
+  <div id="shop" class="hidden">
+    <div class="shop-panel">
+      <h2>Skins</h2>
+      <div id="skinsList"></div>
+      <div style="text-align:right;margin-top:8px"><button id="closeShop">Close</button></div>
+    </div>
+  </div>
+  <canvas id="gameCanvas" width="480" height="640"></canvas>
+  <script src="main.js"></script>
+</body>
+</html>

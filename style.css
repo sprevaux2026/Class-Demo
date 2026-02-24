@@ -1,0 +1,28 @@
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial}
+#root{display:flex;align-items:center;justify-content:center;height:100vh}
+html,body{height:100%;}
+body{display:flex;align-items:center;justify-content:center;background:linear-gradient(#87CEEB,#a0d8ff);}
+#ui{position:absolute;top:12px;left:12px;color:#033;text-shadow:0 1px 0 rgba(255,255,255,0.6)}
+#ui h1{font-size:18px;margin-bottom:6px}
+#score{font-weight:700}
+#overlay{position:fixed;left:0;right:0;top:50%;transform:translateY(-50%);text-align:center;font-size:20px;color:#fff;background:rgba(0,0,0,0.65);padding:12px;border-radius:8px;z-index:9999}
+canvas{border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.2);display:block}
+
+/* ensure overlay is above scaled canvas and centered */
+
+/* Topbar */
+#topbar{position:fixed;left:50%;transform:translateX(-50%);top:8px;display:flex;gap:16px;align-items:center;z-index:9999}
+#topbar #highscore{background:rgba(0,0,0,0.55);color:#fff;padding:6px 10px;border-radius:6px;font-weight:700}
+#topbar #coinCount{background:rgba(255,255,255,0.9);color:#222;padding:6px 10px;border-radius:6px;font-weight:700}
+#topbar #shopBtn{padding:6px 8px;border-radius:6px;border:none;background:#ffd166;color:#6b3b00;cursor:pointer}
+
+/* Shop modal */
+#shop.hidden{display:none}
+#shop{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:10000}
+.shop-panel{background:#fff;padding:16px;border-radius:12px;width:320px;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+.shop-panel h2{margin-bottom:8px}
+#skinsList{display:flex;gap:8px;flex-wrap:wrap}
+.skin-card{width:96px;padding:8px;border-radius:8px;border:1px solid #eee;text-align:center;background:#fafafa}
+.skin-card img{width:64px;height:48px;object-fit:contain}
+.skin-card button{margin-top:6px;padding:6px 6px;border-radius:6px;border:none;background:#3a86ff;color:#fff;cursor:pointer}
+.skin-cost{font-weight:700;color:#444;margin-top:4px}
