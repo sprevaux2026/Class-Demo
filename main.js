@@ -21,14 +21,27 @@ const GRADE_IMAGES = {};
 
 // skins catalog
 const SKINS = [
+  // Free default
   {id:'default', name:'Default', src:'assets/bull.svg', cost:0},
-  {id:'red', name:'Raging Red', src:'assets/bull_red.svg', cost:10},
-  {id:'gold', name:'Golden', src:'assets/bull_gold.svg', cost:25},
-  {id:'black', name:'Midnight', src:'assets/bull_black.svg', cost:15},
+  // Budget coins (5-15 coins)
+  {id:'frost', name:'Frost', src:'assets/bull_frost.svg', cost:5},
+  {id:'flame', name:'Flame', src:'assets/bull_flame.svg', cost:8},
+  // Medium coins (12-30 coins)
   {id:'gray', name:'Steel Gray', src:'assets/bull_gray.svg', cost:12},
-  {id:'party', name:'Party', src:'assets/bull_party.svg', cost:30},
+  {id:'black', name:'Midnight', src:'assets/bull_black.svg', cost:15},
+  {id:'red', name:'Raging Red', src:'assets/bull_red.svg', cost:10},
   {id:'cowboy', name:'Cowboy', src:'assets/bull_cowboy.svg', cost:20},
-  {id:'legend', name:'Legend (HS50)', src:'assets/bull_legend.svg', unlockScore:50, cost:0},
+  {id:'emerald', name:'Emerald', src:'assets/bull_emerald.svg', cost:25},
+  {id:'gold', name:'Golden', src:'assets/bull_gold.svg', cost:25},
+  {id:'party', name:'Party', src:'assets/bull_party.svg', cost:30},
+  {id:'royal', name:'Royal', src:'assets/bull_royal.svg', cost:40},
+  // Score-based unlocks
+  {id:'hs10', name:'Skilled (HS10)', src:'assets/bull_frost.svg', unlockScore:10, cost:0},
+  {id:'hs20', name:'Expert (HS20)', src:'assets/bull_flame.svg', unlockScore:20, cost:0},
+  {id:'hs30', name:'Master (HS30)', src:'assets/bull_emerald.svg', unlockScore:30, cost:0},
+  {id:'hs40', name:'Legend (HS40)', src:'assets/bull_royal.svg', unlockScore:40, cost:0},
+  {id:'hs50', name:'Champion (HS50)', src:'assets/bull_legend.svg', unlockScore:50, cost:0},
+  {id:'shadow', name:'Shadow (HS60)', src:'assets/bull_shadow.svg', unlockScore:60, cost:0},
 ];
 
 // persistent state

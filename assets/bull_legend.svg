@@ -1,11 +1,25 @@
 <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 90'>
   <g transform='translate(60,45)'>
+    <!-- Horns (golden crown horns) -->
+    <path d='M-25,-22 Q-35,-40 -30,-50' stroke='#ffd700' stroke-width='4' fill='none' stroke-linecap='round'/>
+    <path d='M25,-22 Q35,-40 30,-50' stroke='#ffd700' stroke-width='4' fill='none' stroke-linecap='round'/>
+    <!-- Crown top -->
+    <circle cx='-15' cy='-48' r='4' fill='#ffd700'/>
+    <circle cx='0' cy='-55' r='5' fill='#ffd700'/>
+    <circle cx='15' cy='-48' r='4' fill='#ffd700'/>
+    <!-- Head -->
     <ellipse rx='28' ry='22' fill='gold' stroke='#b57b1a' stroke-width='2'/>
+    <!-- Eyes -->
     <ellipse cx='-8' cy='-4' rx='5' ry='6' fill='#fff'/>
     <ellipse cx='12' cy='-4' rx='5' ry='6' fill='#fff'/>
     <circle cx='-8' cy='-2' r='2' fill='#000'/>
     <circle cx='12' cy='-2' r='2' fill='#000'/>
+    <!-- Ears -->
+    <path d='M-30,-10 C-42,-28 -6,-28 -12,-10' fill='#ffe4b5' stroke='#b57b1a' stroke-width='2'/>
+    <path d='M30,-10 C42,-28 6,-28 12,-10' fill='#ffe4b5' stroke='#b57b1a' stroke-width='2'/>
+    <!-- Snout -->
     <path d='M-20,8 Q0,18 20,8' fill='#b57b1a' />
-    <text x='0' y='6' font-size='22' font-family='Arial' fill='#fff' font-weight='700' text-anchor='middle'>★</text>
+    <!-- Star -->
+    <text x='0' y='8' font-size='20' font-family='Arial' fill='#fff' font-weight='700' text-anchor='middle'>★</text>
   </g>
 </svg>
