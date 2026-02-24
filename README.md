@@ -22,7 +22,7 @@ python3 -m http.server 8000
 
 Controls:
 - Click or press Space to flap / start.
-- Collect USF logos for points. Click to restart after game over.
+- Collect Good Grades for coins. Click to restart after game over.
 
 Enjoy!
 Vibe Coding for a class demo
