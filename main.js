@@ -52,7 +52,7 @@ const pipeWidth = 60;
 const gapMin = 120, gapMax = 180;
 const spawnInterval = 60; // base frames between spawns (shorter -> more frequent)
 // Tuned: much faster horizontal movement so pipes reach the player quickly
-const baseSpeed = 12.0; // base horizontal movement speed (pixels/frame)
+const baseSpeed = 60.0; // base horizontal movement speed (pixels/frame) — increased 5x
 const maxSpeedMultiplier = 4.0; // cap speed multiplier
 
 function saveState(){
