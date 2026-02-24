@@ -58,7 +58,7 @@ let frames = 0;
 let score = 0;
 
 const bird = {x:80,y:H/2,vy:0,w:48,h:36};
-let gravity = 0.45, flapStrength = 8, maxFall = 12;
+let gravity = 0.30, flapStrength = 8, maxFall = 12;
 
 const pipes = [];
 const coins = []; // now holds grade items (A-F)
@@ -66,7 +66,7 @@ const pipeWidth = 60;
 const gapMin = 130, gapMax = 180;
 
 // FIX: speed + spacing control
-const pipeSpeed = 1;      // how fast everything moves left (was 1)
+const pipeSpeed = 1.2;      // how fast everything moves left (was 1)
 const pipeSpacing = 320;  // how far apart pipes spawn (increase for easier)
 
 // keep this if you want; not used after distance-based spawn
