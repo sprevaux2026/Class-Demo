@@ -66,7 +66,7 @@ const pipeWidth = 60;
 const gapMin = 130, gapMax = 180;
 
 // FIX: speed + spacing control
-const pipeSpeed = 2;      // how fast everything moves left (was 1)
+const pipeSpeed = 1;      // how fast everything moves left (was 1)
 const pipeSpacing = 320;  // how far apart pipes spawn (increase for easier)
 
 // keep this if you want; not used after distance-based spawn
