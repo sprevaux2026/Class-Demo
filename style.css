@@ -19,9 +19,9 @@ canvas{border-radius:8px;box-shadow:0 10px 30px rgba(0,0,0,0.2);display:block}
 /* Shop modal */
 #shop.hidden{display:none}
 #shop{position:fixed;left:0;top:0;right:0;bottom:0;background:rgba(0,0,0,0.55);display:flex;align-items:center;justify-content:center;z-index:10000}
-.shop-panel{background:#fff;padding:16px;border-radius:12px;width:320px;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+.shop-panel{background:#fff;padding:16px;border-radius:12px;width:320px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 10px 30px rgba(0,0,0,0.3)}
 .shop-panel h2{margin-bottom:8px}
-#skinsList{display:flex;gap:8px;flex-wrap:wrap}
+#skinsList{display:flex;gap:8px;flex-wrap:wrap;overflow-y:auto;max-height:calc(80vh - 80px);padding-right:4px}
 .skin-card{width:96px;padding:8px;border-radius:8px;border:1px solid #eee;text-align:center;background:#fafafa}
 .skin-card img{width:64px;height:48px;object-fit:contain}
 .skin-card button{margin-top:6px;padding:6px 6px;border-radius:6px;border:none;background:#3a86ff;color:#fff;cursor:pointer}
