@@ -102,7 +102,11 @@ const GRADE_VALUES = { A:5, B:3, C:1, D:-2, E:-3, F:-5 };
 
 function spawnPipe(){
   // Flappy-like pipe spawn with guaranteed passage: random gap size and a gapY
-  const gap = Math.floor(Math.random()*(gapMax-gapMin))+gapMin;
+  // Scale gap difficulty: wider at start, narrower as score increases
+  const difficultyFactor = Math.min(1.0, score / 40); // 0 at score 0, 1 at score 40+
+  const currentGapMin = Math.floor(gapMin + (180 - gapMin) * (1 - difficultyFactor)); // 180 at start, 130 at high score
+  const currentGapMax = Math.floor(gapMax + (220 - gapMax) * (1 - difficultyFactor)); // 220 at start, 180 at high score
+  const gap = Math.floor(Math.random()*(currentGapMax-currentGapMin))+currentGapMin;
   const x = W + 10;
 
   // If a previous gap exists, constrain the new gapY so the vertical overlap
