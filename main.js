@@ -42,18 +42,13 @@ let frames = 0;
 let score = 0;
 
 const bird = {x:80,y:H/2,vy:0,w:48,h:36};
-// Tuned for a floaty start: slower fall and gentler jumps
-// Physics tuned to match classic Flappy Bird feel (faster)
-let gravity = 0.65, flapStrength = 9.2, maxFall = 18;
+let gravity = 0.45, flapStrength = 8, maxFall = 12;
 
 const pipes = [];
 const coins = []; // now holds grade items (A-F)
 const pipeWidth = 60;
-const gapMin = 120, gapMax = 180;
-const spawnInterval = 60; // base frames between spawns (shorter -> more frequent)
-// Tuned: much faster horizontal movement so pipes reach the player quickly
-const baseSpeed = 60.0; // base horizontal movement speed (pixels/frame) — increased 5x
-const maxSpeedMultiplier = 4.0; // cap speed multiplier
+const gapMin = 130, gapMax = 180;
+const spawnInterval = 100; // frames (roughly every 1.6s at 60fps)
 
 function saveState(){
   localStorage.setItem('bull_highscore', String(highScore));
@@ -169,20 +164,15 @@ function update(){
 
   // increase speed as score increases (makes game harder over time)
   // speed scales with progress (very gentle growth)
-  const speedMultiplier = Math.min(1 + score * 0.008, maxSpeedMultiplier);
-  const speed = baseSpeed * speedMultiplier;
-
-  // reduce spawn interval slightly as score grows (allow much smaller floor)
-  const dynamicSpawn = Math.max(40, spawnInterval - Math.floor(score * 3));
-  if(frames % dynamicSpawn === 0) spawnPipe();
+  if(frames % spawnInterval === 0) spawnPipe();
 
   // move pipes and coins
   for(let i=pipes.length-1;i>=0;i--){
-    pipes[i].x -= speed;
+    pipes[i].x -= 2.6;
     if(pipes[i].x + pipes[i].w < -50) pipes.splice(i,1);
   }
   for(let i=coins.length-1;i>=0;i--){
-    coins[i].x -= speed;
+    coins[i].x -= 2.6;
     if(coins[i].x + coins[i].r < -50) coins.splice(i,1);
   }
 
