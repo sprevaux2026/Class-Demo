@@ -185,11 +185,11 @@ function update(){
 
   // move pipes and coins
   for(let i=pipes.length-1;i>=0;i--){
-    pipes[i].x -= 2.6;
+    pipes[i].x -= 3.8;
     if(pipes[i].x + pipes[i].w < -50) pipes.splice(i,1);
   }
   for(let i=coins.length-1;i>=0;i--){
-    coins[i].x -= 2.6;
+    coins[i].x -= 3.8;
     if(coins[i].x + coins[i].r < -50) coins.splice(i,1);
   }
 
