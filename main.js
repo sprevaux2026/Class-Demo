@@ -17,7 +17,10 @@ let W = baseW, H = baseH;
 const bullImg = new Image();
 // grade images (A-F)
 const GRADE_IMAGES = {};
-['A','B','C','D','E','F'].forEach(g => { GRADE_IMAGES[g] = new Image(); GRADE_IMAGES[g].src = `assets/grade_${g}.svg`; });
+['A','B','C','D','E','F'].forEach(g => { 
+  GRADE_IMAGES[g] = new Image(); 
+  GRADE_IMAGES[g].src = `assets/grade_${g}.svg`; 
+});
 
 // skins catalog
 const SKINS = [
@@ -61,7 +64,13 @@ const pipes = [];
 const coins = []; // now holds grade items (A-F)
 const pipeWidth = 60;
 const gapMin = 130, gapMax = 180;
-const spawnInterval = 100; // frames (roughly every 1.6s at 60fps)
+
+// FIX: speed + spacing control
+const pipeSpeed = 2;      // how fast everything moves left (was 1)
+const pipeSpacing = 320;  // how far apart pipes spawn (increase for easier)
+
+// keep this if you want; not used after distance-based spawn
+const spawnInterval = 100;
 
 function saveState(){
   localStorage.setItem('bull_highscore', String(highScore));
@@ -90,6 +99,11 @@ function applyScoreUnlocks(){
 function reset(){
   bird.y = H/2; bird.vy = 0; frames = 0; score = 0;
   pipes.length = 0; coins.length = 0; gameRunning = false;
+
+  // FIX: reset gap memory so new runs don’t inherit previous run’s gap constraints
+  delete spawnPipe._prevGapY;
+  delete spawnPipe._prevGap;
+
   overlay.style.display = 'block';
   overlay.textContent = 'Click or press Space to start';
   updateUI();
@@ -174,22 +188,25 @@ function flap(){ bird.vy = -flapStrength; }
 function update(){
   if(!gameRunning) return;
   frames++;
+
   // physics
   bird.vy += gravity;
   if(bird.vy > maxFall) bird.vy = maxFall;
   bird.y += bird.vy;
 
-  // increase speed as score increases (makes game harder over time)
-  // speed scales with progress (very gentle growth)
-  if(frames % spawnInterval === 0) spawnPipe();
+  // FIX: Spawn pipes based on DISTANCE so they never appear too close together
+  const lastPipe = pipes[pipes.length - 1];
+  if (!lastPipe || (W - lastPipe.x) >= pipeSpacing) {
+    spawnPipe();
+  }
 
   // move pipes and coins
   for(let i=pipes.length-1;i>=0;i--){
-    pipes[i].x -= 1;
+    pipes[i].x -= pipeSpeed;
     if(pipes[i].x + pipes[i].w < -50) pipes.splice(i,1);
   }
   for(let i=coins.length-1;i>=0;i--){
-    coins[i].x -= 1;
+    coins[i].x -= pipeSpeed;
     if(coins[i].x + coins[i].r < -50) coins.splice(i,1);
   }
 
@@ -205,7 +222,12 @@ function update(){
       if(by - bh/2 < p.gapY || by + bh/2 > p.gapY + p.gap) { gameOver(); }
     }
     // score when bird passes pipe
-    if(!p.passed && p.x + p.w < bird.x - bw/2){ p.passed = true; score += 1; if(score > highScore){ highScore = score; saveState(); } updateUI(); }
+    if(!p.passed && p.x + p.w < bird.x - bw/2){ 
+      p.passed = true; 
+      score += 1; 
+      if(score > highScore){ highScore = score; saveState(); } 
+      updateUI(); 
+    }
   }
 
   // coins
@@ -221,13 +243,19 @@ function update(){
   }
 }
 
-function gameOver(){ gameRunning = false; overlay.textContent = `Game Over — Score: ${score}. Click to restart`; overlay.style.display='block'; saveState(); }
+function gameOver(){ 
+  gameRunning = false; 
+  overlay.textContent = `Game Over — Score: ${score}. Click to restart`; 
+  overlay.style.display='block'; 
+  saveState(); 
+}
 
 function draw(){
   // sky bg
   ctx.clearRect(0,0,W,H);
   // background hills / ground
-  ctx.fillStyle = '#7fbf55'; ctx.fillRect(0,H-60,W,60);
+  ctx.fillStyle = '#7fbf55'; 
+  ctx.fillRect(0,H-60,W,60);
 
   // pipes
   for(const p of pipes){
@@ -243,10 +271,23 @@ function draw(){
   }
 
   // grades (A-F)
-  for(const c of coins){ if(c.collected) continue; if(c.img && c.img.complete) ctx.drawImage(c.img, c.x - c.r, c.y - c.r, c.r*2, c.r*2); else {
-    // fallback circle with letter
-    ctx.fillStyle = c.value>0 ? '#ffd166' : '#d9534f'; ctx.beginPath(); ctx.arc(c.x,c.y,c.r,0,Math.PI*2); ctx.fill(); ctx.fillStyle='#fff'; ctx.font='20px Arial'; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(c.type, c.x, c.y);
-  } }
+  for(const c of coins){ 
+    if(c.collected) continue; 
+    if(c.img && c.img.complete) {
+      ctx.drawImage(c.img, c.x - c.r, c.y - c.r, c.r*2, c.r*2);
+    } else {
+      // fallback circle with letter
+      ctx.fillStyle = c.value>0 ? '#ffd166' : '#d9534f'; 
+      ctx.beginPath(); 
+      ctx.arc(c.x,c.y,c.r,0,Math.PI*2); 
+      ctx.fill(); 
+      ctx.fillStyle='#fff'; 
+      ctx.font='20px Arial'; 
+      ctx.textAlign='center'; 
+      ctx.textBaseline='middle'; 
+      ctx.fillText(c.type, c.x, c.y);
+    } 
+  }
 
   // bull (player)
   ctx.save();
@@ -260,8 +301,15 @@ function draw(){
 function loop(){ update(); draw(); requestAnimationFrame(loop); }
 
 // controls
-window.addEventListener('keydown', e=>{ if(e.code==='Space'){ e.preventDefault(); if(!gameRunning){ startGame(); } else { flap(); } } });
-canvas.addEventListener('click', ()=>{ if(!gameRunning){ startGame(); } else { flap(); } });
+window.addEventListener('keydown', e=>{ 
+  if(e.code==='Space'){ 
+    e.preventDefault(); 
+    if(!gameRunning){ startGame(); } else { flap(); } 
+  } 
+});
+canvas.addEventListener('click', ()=>{ 
+  if(!gameRunning){ startGame(); } else { flap(); } 
+});
 
 function startGame(){
   if(!gameRunning){
@@ -293,10 +341,16 @@ function renderSkins(){
   // apply any score-based unlocks before rendering
   applyScoreUnlocks();
   SKINS.forEach(s => {
-    const card = document.createElement('div'); card.className='skin-card';
-    const img = document.createElement('img'); img.src = s.src; img.alt = s.name;
-    const title = document.createElement('div'); title.textContent = s.name;
-    const cost = document.createElement('div'); cost.className='skin-cost'; cost.textContent = s.cost > 0 ? `${s.cost} coins` : (s.unlockScore ? `Unlock at HS ${s.unlockScore}` : 'Free');
+    const card = document.createElement('div'); 
+    card.className='skin-card';
+    const img = document.createElement('img'); 
+    img.src = s.src; 
+    img.alt = s.name;
+    const title = document.createElement('div'); 
+    title.textContent = s.name;
+    const cost = document.createElement('div'); 
+    cost.className='skin-cost'; 
+    cost.textContent = s.cost > 0 ? `${s.cost} coins` : (s.unlockScore ? `Unlock at HS ${s.unlockScore}` : 'Free');
     const btn = document.createElement('button');
     const isOwned = ownedSkins.includes(s.id);
     const isLockedByScore = s.unlockScore && highScore < s.unlockScore;
@@ -304,21 +358,41 @@ function renderSkins(){
     if(isOwned){
       btn.textContent = (selectedSkin===s.id)? 'Equipped' : 'Equip';
       btn.disabled = (selectedSkin===s.id);
-      btn.onclick = ()=>{ selectedSkin = s.id; bullImg.src = s.src; saveState(); renderSkins(); };
+      btn.onclick = ()=>{ 
+        selectedSkin = s.id; 
+        bullImg.src = s.src; 
+        saveState(); 
+        renderSkins(); 
+      };
     } else if(isLockedByScore){
       btn.textContent = `Locked`;
       btn.disabled = true;
     } else if(s.cost && s.cost > 0){
       btn.textContent = `Buy`;
       btn.onclick = ()=>{
-        if(coinsCollected >= s.cost){ coinsCollected -= s.cost; ownedSkins.push(s.id); saveState(); updateUI(); renderSkins(); } else { alert('Not enough coins'); }
+        if(coinsCollected >= s.cost){ 
+          coinsCollected -= s.cost; 
+          ownedSkins.push(s.id); 
+          saveState(); 
+          updateUI(); 
+          renderSkins(); 
+        } else { 
+          alert('Not enough coins'); 
+        }
       };
     } else {
       // free and not owned (e.g., unlocked by score)
       btn.textContent = `Unlock`;
-      btn.onclick = ()=>{ ownedSkins.push(s.id); saveState(); renderSkins(); };
+      btn.onclick = ()=>{ 
+        ownedSkins.push(s.id); 
+        saveState(); 
+        renderSkins(); 
+      };
     }
-    card.appendChild(img); card.appendChild(title); card.appendChild(cost); card.appendChild(btn);
+    card.appendChild(img); 
+    card.appendChild(title); 
+    card.appendChild(cost); 
+    card.appendChild(btn);
     skinsList.appendChild(card);
   });
 }
