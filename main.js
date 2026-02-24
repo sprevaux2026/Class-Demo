@@ -50,10 +50,10 @@ const pipes = [];
 const coins = []; // now holds grade items (A-F)
 const pipeWidth = 60;
 const gapMin = 120, gapMax = 180;
-const spawnInterval = 100; // base frames between spawns (shorter -> more frequent)
-// Tuned: faster horizontal movement for classic game feel
-const baseSpeed = 6.5; // base horizontal movement speed
-const maxSpeedMultiplier = 3.2; // cap speed multiplier
+const spawnInterval = 60; // base frames between spawns (shorter -> more frequent)
+// Tuned: much faster horizontal movement so pipes reach the player quickly
+const baseSpeed = 12.0; // base horizontal movement speed (pixels/frame)
+const maxSpeedMultiplier = 4.0; // cap speed multiplier
 
 function saveState(){
   localStorage.setItem('bull_highscore', String(highScore));
@@ -172,8 +172,8 @@ function update(){
   const speedMultiplier = Math.min(1 + score * 0.008, maxSpeedMultiplier);
   const speed = baseSpeed * speedMultiplier;
 
-  // reduce spawn interval slightly as score grows (keep floor reasonably high)
-  const dynamicSpawn = Math.max(160, spawnInterval - Math.floor(score * 3));
+  // reduce spawn interval slightly as score grows (allow much smaller floor)
+  const dynamicSpawn = Math.max(40, spawnInterval - Math.floor(score * 3));
   if(frames % dynamicSpawn === 0) spawnPipe();
 
   // move pipes and coins
